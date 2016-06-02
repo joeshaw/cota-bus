@@ -60,7 +60,7 @@ June 2016, shortly after COTA made the data available.
 
     var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-    var base_url = "http://localhost:8080";
+    var base_url = "https://joeshaw.org/cota-bus/api";
 
     var direction_data = [
       { icon: "/mbta-bus/images/red-dot.png",
