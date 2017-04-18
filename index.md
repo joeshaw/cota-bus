@@ -1,19 +1,20 @@
 ---
-layout: page
+layout: single
 title: COTA Google Maps mashup
 excerpt: Where's the bus?
 date: 2016-05-14T16:00:00-04:00
 tags: cota bus maps mashup
-no_masthead: true
-pre_content: |
-  <div style="margin: 0 20px;">
-    <select id="option_list" style="margin: 10px 0;">
-      <option value="">Select Route</option>
-    </select>
-    <div id="map_canvas"></div>
-    <div id="marker_legend"></div>
-  </div>
 ---
+
+<div style="margin: 0 20px;">
+  <select id="option_list" style="margin: 10px 0;">
+    <option value="">Select Route</option>
+  </select>
+  <div id="map_canvas"></div>
+  <div id="marker_legend"></div>
+</div>
+
+## About
 
 [COTA](http://www.cota.com/) provides real-time tracking of its buses.
 
