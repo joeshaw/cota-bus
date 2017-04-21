@@ -1,2 +1,2 @@
-agency_phone,agency_fare_url,agency_url,agency_id,agency_name,agency_timezone,agency_lang
-6142281776,,http://www.cota.com,COTA,Central Ohio Transit Authority,America/New_York,en
+agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url
+COTA,Central Ohio Transit Authority,http://www.cota.com,America/New_York,en,6142281776,
