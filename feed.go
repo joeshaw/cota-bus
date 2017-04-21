@@ -164,8 +164,14 @@ func updateTripUpdates(db *sqlx.DB) error {
 
 func updateRealtimeData(db *sqlx.DB) {
 	for {
-		updateVehiclePositions(db)
-		updateTripUpdates(db)
+		if err := updateVehiclePositions(db); err != nil {
+			log.Println("error updating vehicle positions:", err)
+		}
+
+		if err := updateTripUpdates(db); err != nil {
+			log.Println("error updating trips:", err)
+		}
+
 		time.Sleep(60 * time.Second)
 	}
 }
