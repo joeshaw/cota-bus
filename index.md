@@ -219,7 +219,7 @@ June 2016, shortly after COTA made the data available.
       var marker = new google.maps.Marker({
         position: latlong,
         map: map,
-        icon: "http://www.nextmuni.com/googleMap/images/stopMarkerRed.gif"
+        icon: "https://www.nextmuni.com/googleMap/images/stopMarkerRed.gif"
       });
 
       marker.stop_id = stop.stop_id;
