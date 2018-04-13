@@ -1,9 +1,9 @@
 ---
-layout: single
 title: COTA Google Maps mashup
-excerpt: Where's the bus?
+description: Where's the bus?
 date: 2016-05-14T16:00:00-04:00
-tags: cota bus maps mashup
+tags: [cota, bus, maps, mashup]
+layout: bus
 ---
 
 <div style="margin: 0 20px;">
