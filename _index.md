@@ -1,5 +1,5 @@
 ---
-title: COTA Google Maps mashup
+title: COTA Tracker
 description: Where's the bus?
 date: 2016-05-14T16:00:00-04:00
 tags: [cota, bus, maps, mashup]
@@ -7,11 +7,11 @@ layout: bus
 ---
 
 <div style="margin: 0 20px;">
-  <select id="option_list" style="margin: 10px 0;">
+  <select id="option_list" style="margin: 10px 0; font-size: 16px;">
     <option value="">Select Route</option>
   </select>
   <div id="map_canvas"></div>
-  <div id="marker_legend"></div>
+  <div id="marker_legend" style="margin: 10px 0;"></div>
 </div>
 
 ## About
@@ -39,25 +39,27 @@ This was based on a [similar mashup I made for the MBTA](/mbta-bus)
 back in 2009.  The first version of this for COTA was released on 1
 June 2016, shortly after COTA made the data available.
 
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
 <script src="https://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script><script type="text/javascript">
   $(document).ready(function() {
     var useragent = navigator.userAgent;
     var map_canvas = document.getElementById("map_canvas");
-
-    if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
-      map_canvas.style.width = '100%';
-      map_canvas.style.height = '300px';
-    } else {
-      map_canvas.style.width = '100%';
-      map_canvas.style.height = '600px';
-    }
 
     var mapOptions = {
       zoom: 12,
       center: new google.maps.LatLng(39.965912, -82.999939),
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
+
+    if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
+      map_canvas.style.width = '100%';
+      map_canvas.style.height = '300px';
+      mapOptions.gestureHandling = 'cooperative';
+    } else {
+      map_canvas.style.width = '100%';
+      map_canvas.style.height = '600px';
+      mapOptions.gestureHandling = 'greedy';
+    }
 
     var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
@@ -335,7 +337,7 @@ June 2016, shortly after COTA made the data available.
     }
 
     function addLegend(icon, name) {
-      $("#marker_legend").append('<img src="' + icon + '">' + name);
+      $("#marker_legend").append('<img src="' + icon + '" style="display: inline">' + name);
     }
 });
 </script>
