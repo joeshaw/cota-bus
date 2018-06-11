@@ -13,7 +13,7 @@ a protobuf-based API.  A Go server takes the (static, occasionally
 updated) GTFS data for COTA and updates it with periodic fetches of
 the GTFS-realtime data.
 
-Reuse the tools in mbta-bus to regenerate the KML.
+Use the `tools/route-kml.go` utility to regenerate the KML.
 
 If the gtfs-realtime.proto file is updated, regenerate the protobuf
 with `go generate`.  Make sure gogoprotobuf is installed.
