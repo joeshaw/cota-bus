@@ -200,7 +200,7 @@ func main() {
 
 	http.HandleFunc("/cota/routes", func(rw http.ResponseWriter, req *http.Request) {
 		routes := []route{}
-		err := db.Select(&routes, "SELECT route_id, route_long_name, route_short_name FROM routes WHERE agency_id = 'COTA' ORDER BY route_long_name")
+		err := db.Select(&routes, "SELECT route_id, route_long_name, route_short_name FROM routes WHERE agency_id = 'COTA' ORDER BY route_short_name*1, route_short_name, route_long_name")
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
