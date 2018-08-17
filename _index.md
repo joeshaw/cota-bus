@@ -135,7 +135,7 @@ June 2016, shortly after COTA made the data available.
               continue
             }
 
-            $("#option_list").append('<option value="' + route.route_id + '">' + route.long_name + '</option>');
+            $("#option_list").append('<option value="' + route.route_id + '">' + route.short_name + " – " + route.long_name + '</option>');
           }
 
           params = queryParams(document.location.search);
