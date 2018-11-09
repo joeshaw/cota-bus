@@ -63,7 +63,7 @@ June 2016, shortly after COTA made the data available.
 
     var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
 
-    var base_url = "https://joeshaw.org/cota-bus/api";
+    var base_url = "/cota-bus/api";
 
     var direction_data = [
       { icon: "/mbta-bus/images/red-dot.png",
@@ -206,7 +206,7 @@ June 2016, shortly after COTA made the data available.
         }
 
         route_layer = new google.maps.KmlLayer({
-          url: "https://joeshaw.org/cota-bus/kml/" + route_id + ".kml",
+          url: "https://www.joeshaw.org/cota-bus/kml/" + route_id + ".kml",
           suppressInfoWindows: true,
           map: map
         });
