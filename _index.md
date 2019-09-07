@@ -40,7 +40,7 @@ back in 2009.  The first version of this for COTA was released on 1
 June 2016, shortly after COTA made the data available.
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-<script src="https://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script><script type="text/javascript">
+<script src="https://maps.google.com/maps/api/js?key=AIzaSyBuDLNN2zftYHZtrxnAwOcVYUF0zgJQukU&sensor=false" type="text/javascript"></script><script type="text/javascript">
   $(document).ready(function() {
     var useragent = navigator.userAgent;
     var map_canvas = document.getElementById("map_canvas");
