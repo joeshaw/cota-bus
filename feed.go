@@ -291,6 +291,6 @@ func main() {
 		enc.Encode(predictions)
 	})
 
-	log.Println("Starting server on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Starting server on port 18080")
+	log.Fatal(http.ListenAndServe(":18080", nil))
 }
