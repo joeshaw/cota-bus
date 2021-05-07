@@ -9,6 +9,7 @@ $(document).ready(function() {
       mapTypeControlOptions: {
           mapTypeIds: [google.maps.MapTypeId.ROADMAP]
       },
+      mapTypeControl: false,
       streetViewControl: false,
       clickableIcons: false,
     };
