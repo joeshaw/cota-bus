@@ -5,7 +5,12 @@ $(document).ready(function() {
     var mapOptions = {
       zoom: 12,
       center: new google.maps.LatLng(39.965912, -82.999939),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      mapTypeControlOptions: {
+          mapTypeIds: [google.maps.MapTypeId.ROADMAP]
+      },
+      streetViewControl: false,
+      clickableIcons: false,
     };
 
     if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
