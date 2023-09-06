@@ -184,7 +184,7 @@ $(document).ready(function() {
       var marker = new google.maps.Marker({
         position: latlong,
         map: map,
-        icon: "https://www.nextmuni.com/googleMap/images/stopMarkerRed.gif"
+        icon: "https://www.joeshaw.org/mbta-bus/images/stop-marker.gif"
       });
 
       marker.stop_id = stop.stop_id;
