@@ -1,2 +1,2 @@
 agency_id,agency_name,agency_url,agency_timezone,agency_lang,agency_phone,agency_fare_url
-COTA,Central Ohio Transit Authority,http://www.cota.com,America/New_York,en,614-228-1776,http://www.cota.com/riding-cota/fare-overview/
+COTA,Central Ohio Transit Authority,http://www.cota.com,America/New_York,en,,http://www.cota.com/riding-cota/fare-overview/

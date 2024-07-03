@@ -34,8 +34,6 @@ fare_id,route_id,origin_id,destination_id,contains_id
 1,072,,,
 1,073,,,
 1,074,,,
-1,075,,,
 1,101,,,
 1,102,,,
-1,141,,,
 1,152,,,

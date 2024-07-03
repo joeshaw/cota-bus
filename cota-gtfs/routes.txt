@@ -1,41 +1,43 @@
 route_id,agency_id,route_short_name,route_long_name,route_desc,route_type,route_url,route_color,route_text_color
-001,COTA,1,KENNY/LIVINGSTON,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-002,COTA,2,E MAIN/N HIGH,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-003,COTA,3,NORTHWEST/HARRISBURG,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-004,COTA,4,INDIANOLA/LOCKBOURNE,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-005,COTA,5,W 5TH AVE/REFUGEE,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-006,COTA,6,SULLIVANT,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-007,COTA,7,MT VERNON,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-008,COTA,8,KARL/S HIGH/PARSONS,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-009,COTA,9,W MOUND/BRENTNELL,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-010,COTA,10,E BROAD/W BROAD,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-011,COTA,11,BRYDEN/MAIZE,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-012,COTA,12,MCKINLEY/FIELDS,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-021,COTA,21,HILLIARD ROME,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-022,COTA,22,OSU-RICKENBACKER,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-023,COTA,23,JAMES-STELZER,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-024,COTA,24,HAMILTON RD,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-025,COTA,25,BRICE,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-031,COTA,31,HUDSON,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-032,COTA,32,N BROADWAY,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-033,COTA,33,HENDERSON,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-034,COTA,34,MORSE,,3,http://www.cota.com/services/cota-bus/,FF0000,FFFFFF
-035,COTA,35,DUBLIN-GRANVILLE,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-041,COTA,41,CROSSWOODS-POLARIS,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-042,COTA,42,SHARON WOODS,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-043,COTA,43,WESTERVILLE,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-044,COTA,44,EASTON,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-045,COTA,45,NEW ALBANY,,3,https://cota.com/services/smartride-new-albany/,00E81E,FFFFFF
-046,COTA,46,GAHANNA,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-051,COTA,51,REYNOLDSBURG,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-052,COTA,52,CANAL WINCHESTER,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-061,COTA,61,GROVE CITY,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-071,COTA,71,HILLIARD,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-072,COTA,72,TUTTLE,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-073,COTA,73,DUBLIN,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-074,COTA,74,SMOKY ROW,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-075,COTA,75,ARLINGTON/1ST AVE,,3,http://www.cota.com/services/cota-bus/,00E81E,FFFFFF
-101,COTA,CMAX,CMAX,,3,http://cota.com/services/cmax/,FF0000,FFFFFF
-102,COTA,102,POLARIS PKWY/N HIGH,,3,http://www.cota.com/services/cota-bus/,000080,FFFFFF
-141,COTA,ZOO,COLUMBUS ZOO,,3,http://www.cota.com/zoobus/,402A16,F0E68C
-152,COTA,AirConnect,COTA AirConnect,,3,http://www.cota.com/airconnect,000080,FFFFFF
+001,COTA,1,KENNY/LIVINGSTON,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+002,COTA,2,E MAIN/N HIGH,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+003,COTA,3,NORTHWEST/HARRISBURG,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+004,COTA,4,INDIANOLA/LOCKBOURNE,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+005,COTA,5,W 5TH AVE/REFUGEE,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+006,COTA,6,SULLIVANT,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+007,COTA,7,MT VERNON,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+008,COTA,8,KARL/S HIGH/PARSONS,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+009,COTA,9,W MOUND/BRENTNELL,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+010,COTA,10,E BROAD/W BROAD,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+011,COTA,11,BRYDEN/MAIZE,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+012,COTA,12,MCKINLEY/FIELDS,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+021,COTA,21,HILLIARD ROME,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+022,COTA,22,OSU-RICKENBACKER,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+023,COTA,23,JAMES-STELZER,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+024,COTA,24,HAMILTON RD,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+025,COTA,25,BRICE,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+031,COTA,31,HUDSON,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+032,COTA,32,N BROADWAY,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+033,COTA,33,HENDERSON,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+034,COTA,34,MORSE,,3,http://www.cota.com/services/cota-bus/,AF272F,FFFFFF
+035,COTA,35,DUBLIN-GRANVILLE,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+041,COTA,41,CROSSWOODS-POLARIS,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+042,COTA,42,SHARON WOODS,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+043,COTA,43,WESTERVILLE,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+044,COTA,44,EASTON,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+045,COTA,45,NEW ALBANY,,3,https://cota.com/services/smartride-new-albany/,007B4B,FFFFFF
+046,COTA,46,GAHANNA,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+051,COTA,51,REYNOLDSBURG,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+052,COTA,52,CANAL WINCHESTER,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+061,COTA,61,GROVE CITY,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+071,COTA,71,HILLIARD,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+072,COTA,72,TUTTLE,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+073,COTA,73,DUBLIN,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+074,COTA,74,SMOKY ROW,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+075,COTA,75,ARLINGTON/1ST AVE,,3,http://www.cota.com/services/cota-bus/,007B4B,FFFFFF
+101,COTA,CMAX,CMAX,,3,http://cota.com/services/cmax/,AF272F,FFFFFF
+102,COTA,102,POLARIS PKWY/N HIGH,,3,http://www.cota.com/services/cota-bus/,00205B,FFFFFF
+141,COTA,ZOO,COLUMBUS ZOO,,3,http://www.cota.com/zoobus,402A16,F0E68C
+152,COTA,AirConnect,COTA AirConnect,,3,http://www.cota.com/airconnect,00205B,FFFFFF
+201,COTA,201,SMARTRIDE NEW ALBANY - RED,,3,https://www.cota.com/services/smartride-new-albany/,AF272F,FFFFFF
+202,COTA,202,SMARTRIDE NEW ALBANY - BLUE,,3,https://www.cota.com/services/smartride-new-albany/,00205B,FFFFFF
