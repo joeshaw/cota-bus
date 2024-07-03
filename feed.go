@@ -15,6 +15,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const (
+	vehiclePositionsURL = "https://gtfs-rt.cota.vontascloud.com/TMGTFSRealTimeWebService/Vehicle/VehiclePositions.pb"
+	tripUpdatesURL      = "https://gtfs-rt.cota.vontascloud.com/TMGTFSRealTimeWebService/TripUpdate/TripUpdates.pb"
+)
+
 type agency struct {
 	ID   string `db:"agency_id" json:"agency_id"`
 	Name string `db:"agency_name" json:"name"`
@@ -75,7 +80,7 @@ func fetchProtobuf(url string) (*FeedMessage, error) {
 }
 
 func updateVehiclePositions(db *sqlx.DB) error {
-	msg, err := fetchProtobuf("http://realtime.cota.com/TMGTFSRealTimeWebService/Vehicle/VehiclePositions.pb")
+	msg, err := fetchProtobuf(vehiclePositionsURL)
 	if err != nil {
 		return err
 	}
@@ -119,7 +124,7 @@ func updateVehiclePositions(db *sqlx.DB) error {
 }
 
 func updateTripUpdates(db *sqlx.DB) error {
-	msg, err := fetchProtobuf("http://realtime.cota.com/TMGTFSRealTimeWebService/TripUpdate/TripUpdates.pb")
+	msg, err := fetchProtobuf(tripUpdatesURL)
 	if err != nil {
 		return err
 	}
@@ -236,7 +241,6 @@ func main() {
 		rw.Header().Set("Access-Control-Allow-Origin", "*")
 		enc := json.NewEncoder(rw)
 		enc.Encode(stops)
-
 	})
 
 	http.HandleFunc("/cota/vehicles", func(rw http.ResponseWriter, req *http.Request) {
