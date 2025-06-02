@@ -1,2 +1,0 @@
-feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
-Central Ohio Transit Authority,http://www.cota.com,en,20240902,20250105,2024-SEP-02-BB_20240902

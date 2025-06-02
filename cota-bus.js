@@ -1,305 +1,379 @@
-$(document).ready(function() {
-    var useragent = navigator.userAgent;
-    var map_canvas = document.getElementById("map_canvas");
+let map;
+let routes = [];
+let routeShapes = [];
+let stops = [];
+let vehicles = [];
+let polylines = [];
+let stopMarkers = [];
+let vehicleMarkers = [];
+let directions = [];
+let markerIcons = [];
+let currentRoute = null;
+let infoWindow = null;
 
-    var mapOptions = {
-      zoom: 12,
-      center: new google.maps.LatLng(39.965912, -82.999939),
-      mapTypeId: google.maps.MapTypeId.ROADMAP,
-      mapTypeControlOptions: {
-          mapTypeIds: [google.maps.MapTypeId.ROADMAP]
-      },
-      mapTypeControl: false,
-      streetViewControl: false,
-      clickableIcons: false,
+const refreshInterval = 10_000; // 10 seconds
+let refreshTimer = null;
+
+// Detect environment - use localhost for development, /cota-bus/api for production
+const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = isDevelopment ? 'http://localhost:18080' : '/cota-bus/api';
+
+const vehicleIconUrls = [
+    '/mbta-bus/images/red-dot.png',
+    '/mbta-bus/images/blue-dot.png',
+    '/mbta-bus/images/green-dot.png',
+    '/mbta-bus/images/orange-dot.png',
+    '/mbta-bus/images/purple-dot.png',
+    '/mbta-bus/images/yellow-dot.png',
+];
+
+async function fetchJSON(url) {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Network error');
+    return resp.json();
+}
+
+function buildApiUrl(endpoint) {
+    return `${API_BASE}${endpoint}`;
+}
+
+async function loadRoutes() {
+    const data = await fetchJSON(buildApiUrl('/routes'));
+    routes = data.data;
+    const select = document.getElementById('route-select');
+    routes.forEach(route => {
+        const opt = document.createElement('option');
+        opt.value = route.id;
+        
+        // Format as "route_number: long_name" for bus routes
+        const shortName = route.attributes.short_name;
+        const longName = route.attributes.long_name;
+        
+        if (shortName && longName) {
+            opt.textContent = `${shortName}: ${longName}`;
+        } else if (longName) {
+            opt.textContent = longName;
+        } else if (shortName) {
+            opt.textContent = shortName;
+        } else {
+            opt.textContent = route.id;
+        }
+        
+        select.appendChild(opt);
+    });
+}
+
+async function loadRoute(routeId) {
+    const data = await fetchJSON(buildApiUrl(`/routes/${routeId}`));
+    currentRoute = data.data;
+}
+
+async function loadShapes(routeId) {
+    const data = await fetchJSON(buildApiUrl(`/shapes?filter[route]=${routeId}`));
+    routeShapes = data.data;
+}
+
+async function loadStops(routeId) {
+    const data = await fetchJSON(buildApiUrl(`/stops?filter[route]=${routeId}`));
+    stops = data.data;
+}
+
+async function loadVehicles(routeId) {
+    const data = await fetchJSON(buildApiUrl(`/vehicles?filter[route]=${routeId}`));
+    vehicles = data.data;
+}
+
+function drawShapes() {
+    // Remove old polylines
+    polylines.forEach(poly => poly.setMap(null));
+
+    polylines = [];
+    routeShapes.forEach(shape => {
+        if (!shape.attributes.polyline) return;
+        const path = google.maps.geometry.encoding.decodePath(shape.attributes.polyline);
+        const polyline = new google.maps.Polyline({
+            path,
+            strokeColor: '#0000ff',
+            strokeOpacity: 1,
+            strokeWeight: 5,
+            map: map
+        });
+        polylines.push(polyline);
+    });
+}
+
+function drawStops() {
+    // Remove old stop markers
+    stopMarkers.forEach(marker => marker.map = null);
+
+    stopMarkers = [];
+    stops.forEach(stop => {
+        const img = document.createElement('img');
+        img.src = '/mbta-bus/images/stop-marker.gif';
+        img.style.width = '8px';
+        img.style.height = '8px';
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            map: map,
+            position: { lat: parseFloat(stop.attributes.latitude), lng: parseFloat(stop.attributes.longitude) },
+            title: stop.attributes.name,
+            content: img,
+            zIndex: 50 // Lower z-index for stop markers
+        });
+        marker.addListener('gmp-click', () => openStopInfo(stop));
+        stopMarkers.push(marker);
+    });
+}
+
+function getDirectionDisplayName(directionId) {
+    const directionDestinations = currentRoute.attributes.direction_destinations || [];
+    return directionDestinations[directionId] || `Direction ${directionId}`;
+}
+
+function getVehicleIcon(vehicle) {
+    const direction = vehicle.attributes.direction_id;
+    return {
+        url: vehicleIconUrls[direction % vehicleIconUrls.length],
+        scaledSize: new google.maps.Size(32, 32)
     };
+}
 
-    if (useragent.indexOf('iPhone') != -1 || useragent.indexOf('Android') != -1 ) {
-      map_canvas.style.width = '100%';
-      map_canvas.style.height = '300px';
-      mapOptions.gestureHandling = 'cooperative';
+function fitMapToBounds() {
+    const bounds = new google.maps.LatLngBounds();
+    routeShapes.forEach(shape => {
+        if (!shape.attributes.polyline) return;
+        const path = google.maps.geometry.encoding.decodePath(shape.attributes.polyline);
+        path.forEach(latlng => bounds.extend(latlng));
+    });
+    if (!bounds.isEmpty()) {
+        map.fitBounds(bounds);
+    }
+}
+
+function updateDirections() {
+    directions = [];
+    markerIcons = [];
+
+    if (!currentRoute || !currentRoute.attributes.direction_destinations) {
+        // Fallback to vehicle destinations if route data is unavailable
+        const seen = new Set();
+        vehicles.forEach(vehicle => {
+            const destination = vehicle.attributes.headsign || 'Unknown';
+            const direction = vehicle.attributes.direction_id;
+            if (!seen.has(destination)) {
+                seen.add(destination);
+                directions.push(destination);
+                markerIcons.push(vehicleIconUrls[direction % vehicleIconUrls.length]);
+            }
+        });
     } else {
-      map_canvas.style.width = '100%';
-      map_canvas.style.height = '600px';
-      mapOptions.gestureHandling = 'greedy';
+        const directionDestinations = currentRoute.attributes.direction_destinations || [];
+        directionDestinations.forEach((dest, index) => {
+            const displayName = getDirectionDisplayName(index);
+            directions.push(displayName);
+            markerIcons.push(vehicleIconUrls[index % vehicleIconUrls.length]);
+        });
     }
 
-    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+    // Render legend
+    const container = document.getElementById('directions-container');
+    container.innerHTML = '';
+    directions.forEach((direction, i) => {
+        const img = document.createElement('img');
+        img.src = markerIcons[i];
+        img.style.display = 'inline';
+        img.style.verticalAlign = 'middle';
+        img.style.marginRight = '4px';
+        const span = document.createElement('span');
+        span.appendChild(img);
+        span.appendChild(document.createTextNode(direction + ' '));
+        span.style.marginRight = '10px';
+        container.appendChild(span);
+    });
+}
 
-    var base_url = "/cota-bus/api";
+function drawVehicles() {
+    vehicleMarkers.forEach(marker => marker.map = null);
+    vehicleMarkers = [];
+    vehicles.forEach(vehicle => {
+        const iconUrl = getVehicleIcon(vehicle).url;
+        const img = document.createElement('img');
+        img.src = iconUrl;
+        img.style.width = '32px';
+        img.style.height = '32px';
+        
+        // Determine direction and destination using helper function
+        const directionId = vehicle.attributes.direction_id;
+        const displayName = getDirectionDisplayName(directionId);
+        const vehicleLabel = vehicle.attributes.label || vehicle.id;
+        
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            map: map,
+            position: { lat: parseFloat(vehicle.attributes.latitude), lng: parseFloat(vehicle.attributes.longitude) },
+            title: `Vehicle ${vehicleLabel} - ${displayName}`,
+            content: img,
+            zIndex: 100 // Lower z-index so info windows appear above
+        });
+        marker.addListener('gmp-click', () => openVehicleInfo(vehicle));
+        vehicleMarkers.push(marker);
+    });
+    updateDirections(); // Update legend after drawing vehicles
+}
 
-    var direction_data = [
-      { icon: "/mbta-bus/images/red-dot.png",
-        line_color: "#FF0000" },
-
-      { icon: "/mbta-bus/images/blue-dot.png",
-        line_color: "#0000FF" },
-
-      { icon: "/mbta-bus/images/green-dot.png",
-        line_color: "#00FF00" },
-
-      { icon: "/mbta-bus/images/yellow-dot.png",
-        line_color: "#FFFF00" },
-
-      { icon: "/mbta-bus/images/orange-dot.png",
-        line_color: "#FF7700" },
-
-      { icon: "/mbta-bus/images/purple-dot.png",
-        line_color: "#FF00FF" }
-    ];
-
-    // Some global variables
-    var selected_route = "";
-    var vehicle_markers = {};
-    var stop_markers = [];
-    var route_layer = null;
-    var lines = [];
-    var open_info_window = null;
-    var updateIntervalID = 0;
-
-    populateRouteList();
-
-    // Update the markers any time the option box is changed, or
-    // every 10 seconds as long as the window is visible.
-    $("select").change(updateMarkers);
-    if (!document.hidden) {
-      updateIntervalID = setInterval(updateMarkers, 10000);
+async function openStopInfo(stop) {
+    if (!infoWindow) {
+        infoWindow = new google.maps.InfoWindow({
+            zIndex: 1000 // Ensure info window appears above markers
+        });
     }
+    let content = `<strong>${stop.attributes.name}</strong>`;
+    infoWindow.setContent(content);
+    infoWindow.setPosition({ lat: parseFloat(stop.attributes.latitude), lng: parseFloat(stop.attributes.longitude) });
+    infoWindow.open(map);
+}
 
-    function handleVisibilityChange() {
-      if (document.hidden && updateIntervalID) {
-        clearInterval(updateIntervalID);
-        updateIntervalID = 0;
-      } else if (!document.hidden && !updateIntervalID) {
-        updateMarkers();
-        updateIntervalID = setInterval(updateMarkers, 10000);
-      }
+async function openVehicleInfo(vehicle) {
+    if (!infoWindow) {
+        infoWindow = new google.maps.InfoWindow({
+            zIndex: 1000 // Ensure info window appears above markers
+        });
     }
-    document.addEventListener("visibilitychange", handleVisibilityChange, false);
-
-    function queryParams(qs) {
-      qs = qs.split("+").join(" ");
-
-      var params = {};
-      var regexp = /[?&]?([^=]+)=([^&]*)/g;
-      var tokens;
-      while (tokens = regexp.exec(qs)) {
-        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2])
-      }
-      return params;
-    }
-
-    function populateRouteList() {
-      $.getJSON(base_url + "/cota/routes",
-        function(data) {
-          for (var j = 0; j < data.length; j++) {
-            var route = data[j]
-            if (route.route_hide) {
-              continue
+    
+    const vehicleLabel = vehicle.attributes.label || vehicle.id;
+    const directionId = vehicle.attributes.direction_id;
+    const displayName = getDirectionDisplayName(directionId);
+    
+    let content = `<strong>Vehicle ${vehicleLabel}</strong><br><em>${displayName}</em>`;
+    
+    // Try to get trip predictions for next stops
+    const tripId = vehicle.relationships?.trip?.data?.id;
+    if (tripId) {
+        try {
+            const tripPredictions = await fetchJSON(buildApiUrl(`/predictions?filter[trip]=${tripId}&include=stop`));
+            const predictions = tripPredictions.data;
+            const stops = tripPredictions.included || [];
+            
+            if (predictions.length > 0) {
+                // Filter future predictions, sort by arrival time, and limit to next 3
+                const now = new Date();
+                const futurePredictions = predictions
+                    .filter(pred => {
+                        const departureTime = pred.attributes.departure_time || pred.attributes.arrival_time;
+                        return departureTime && new Date(departureTime) > now;
+                    })
+                    .sort((a, b) => {
+                        const timeA = new Date(a.attributes.departure_time || a.attributes.arrival_time);
+                        const timeB = new Date(b.attributes.departure_time || b.attributes.arrival_time);
+                        return timeA - timeB;
+                    })
+                    .slice(0, 3);
+                
+                if (futurePredictions.length > 0) {
+                    content += '<br><br><em>Next stops:</em><ul style="margin:0;padding-left:18px;">';
+                    
+                    futurePredictions.forEach(pred => {
+                        const departureTime = pred.attributes.departure_time || pred.attributes.arrival_time;
+                        const t = new Date(departureTime);
+                        const minutesUntil = Math.round((t - now) / 60000);
+                        
+                        let timeText;
+                        if (minutesUntil <= 0) {
+                            timeText = 'Now';
+                        } else if (minutesUntil === 1) {
+                            timeText = '1 minute';
+                        } else {
+                            timeText = `${minutesUntil} minutes`;
+                        }
+                        
+                        content += `<li>${timeText}</li>`;
+                    });
+                    content += '</ul>';
+                }
             }
-
-            $("#option_list").append('<option value="' + route.route_id + '">' + route.short_name + " – " + route.long_name + '</option>');
-          }
-
-          params = queryParams(document.location.search);
-          if (params["route"]) {
-            $("#option_list option[value=\"" + params["route"] + "\"]").attr('selected', 'selected');
-            updateMarkers();
-          }
+        } catch (e) {
+            // Silently fail if trip predictions aren't available
+            console.log('Could not load trip predictions:', e);
         }
-      );
     }
+    
+    infoWindow.setContent(content);
+    infoWindow.setPosition({ lat: parseFloat(vehicle.attributes.latitude), lng: parseFloat(vehicle.attributes.longitude) });
+    infoWindow.open(map);
+}
 
-    function resetRouteMarkers() {
-      for (var i = 0; i < stop_markers.length; i++) {
-        stop_markers[i].setMap(null);
-      }
-      stop_markers = [];
+async function loadNewRoute(routeId) {
+    await Promise.all([
+        loadRoute(routeId),
+        loadShapes(routeId),
+        loadStops(routeId),
+        loadVehicles(routeId)
+    ]);
+    drawShapes();
+    drawStops();
+    drawVehicles();
+    fitMapToBounds();
+}
 
-      for (var i = 0; i < lines.length; i++) {
-        lines[i].setMap(null);
-      }
-      lines = [];
+async function updateVehicles(routeId) {
+    await loadVehicles(routeId);
+    drawVehicles();
+}
 
-      if (route_layer !== null) {
-        route_layer.setMap(null);
-        route_layer = null;
-      }
+function onRouteChange() {
+    const select = document.getElementById('route-select');
+    const routeId = select.value;
+    if (!routeId) return;
+    loadNewRoute(routeId);
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = setInterval(() => updateVehicles(routeId), refreshInterval);
+}
+
+function handleVisibilityChange() {
+    const select = document.getElementById('route-select');
+    const routeId = select.value;
+    
+    if (document.hidden && refreshTimer) {
+        // Page is hidden, pause updates
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+    } else if (!document.hidden && !refreshTimer && routeId) {
+        // Page is visible and we have a route selected, resume updates
+        updateVehicles(routeId);
+        refreshTimer = setInterval(() => updateVehicles(routeId), refreshInterval);
     }
+}
 
-    function resetVehicleMarkers() {
-      $("#marker_legend").empty();
-
-      for (var vehicle_id in vehicle_markers) {
-        vehicle_markers[vehicle_id].setMap(null);
-      }
-      vehicle_markers = {};
-    }
-
-    function updateMarkers() {
-      var old_route = selected_route;
-      selected_route = $("select option:selected").attr("value");
-
-      if (selected_route != old_route) {
-        resetRouteMarkers();
-        resetVehicleMarkers();
-      }
-
-      if (selected_route == "") {
-        return;
-      }
-
-      if (selected_route != old_route) {
-        fetchRouteData(selected_route);
-      }
-
-      fetchVehicles(selected_route);
-    }
-
-    function fetchRouteData(route_id) {
-      var stops_url = base_url + "/cota/stops?route=" + route_id;
-      $.getJSON(stops_url, function(data) {
-        var bounds = new google.maps.LatLngBounds();
-        console.log(bounds);
-
-        for (var i = 0; i < data.length; i++) {
-          var stop = data[i];
-          var latlong = placeStop(route_id, stop);
-          bounds.extend(latlong);
+// Google Maps async callback entrypoint
+window.initMap = async function() {
+    const isMobile = /iPhone|Android/i.test(navigator.userAgent);
+    
+    // Set map height based on device type
+    const mapDiv = document.getElementById('map-canvas');
+    mapDiv.style.height = isMobile ? '300px' : '500px';
+    
+    map = new google.maps.Map(document.getElementById('map-canvas'), {
+        center: { lat: 39.965912, lng: -82.999939 },
+        zoom: 12,
+        mapTypeControl: false,
+        streetViewControl: false,
+        clickableIcons: false,
+        mapId: 'COTA_BUS',
+        gestureHandling: isMobile ? 'cooperative' : 'greedy'
+    });
+    await loadRoutes();
+    document.getElementById('route-select').addEventListener('change', onRouteChange);
+    
+    // Add page visibility API event listener
+    document.addEventListener('visibilitychange', handleVisibilityChange, false);
+    
+    // Check URL parameters for deep linking
+    const params = new URLSearchParams(window.location.search);
+    const routeId = params.get('route');
+    if (routeId) {
+        const select = document.getElementById('route-select');
+        const routeOption = Array.from(select.options).find(option => option.value === routeId);
+        if (routeOption) {
+            select.value = routeId;
+            onRouteChange(); // Manually trigger since programmatic value change doesn't fire event
         }
-
-        route_layer = new google.maps.KmlLayer({
-          url: "https://www.joeshaw.org/cota-bus/kml/" + route_id + ".kml",
-          suppressInfoWindows: true,
-          map: map
-        });
-
-        map.fitBounds(bounds)
-      });
     }
-
-    function placeStop(route_id, stop) {
-      var latlong = new google.maps.LatLng(stop.latitude, stop.longitude);
-
-      var marker = new google.maps.Marker({
-        position: latlong,
-        map: map,
-        icon: "https://www.joeshaw.org/mbta-bus/images/stop-marker.gif"
-      });
-
-      marker.stop_id = stop.stop_id;
-      marker.infoContent = '<h3>' + stop.name + '</h3>';
-
-      google.maps.event.addListener(marker, "click", function() {
-        var info_window = new google.maps.InfoWindow({
-          content: this.infoContent,
-        });
-
-        var prediction_url = base_url + "/cota/predictions?stop=" + stop.stop_id;
-        $.getJSON(prediction_url, function(data) {
-          var content = info_window.getContent();
-
-          if (data.length == 0) {
-            content += '<p>No vehicles expected.</p>';
-          } else {
-            content += '<p>Expected arrivals:';
-            content += '<ul>';
-
-            for (var i = 0; i < data.length; i++) {
-              prediction = data[i];
-              content += '<li>';
-              if (prediction.arrival_time < 60) {
-                content += prediction.arrival_time + ' seconds';
-              } else {
-                content += Math.floor(prediction.arrival_time/60) + ' minutes';
-              }
-              content += ': ' + prediction.trip_headsign;
-              content += '</li>';
-            }
-
-            content += '</ul></p>';
-          }
-
-          info_window.setContent(content);
-        });
-
-        google.maps.event.addListener(info_window, "closeclick", function() {
-          open_info_window = null;
-        });
-
-        if (open_info_window) {
-          open_info_window.close();
-        }
-        open_info_window = info_window;
-
-        info_window.open(map, this);
-      });
-
-      stop_markers.push(marker);
-      return latlong;
-    }
-
-    function fetchVehicles(route_id) {
-      var vehicle_url = base_url + "/cota/vehicles?route=" + route_id;
-      $.getJSON(vehicle_url, function(data) {
-        var new_markers = {}
-
-        $("#marker_legend").empty();
-        var trips = [];
-
-        for (var i = 0; i < data.length; i++) {
-          var vehicle = data[i];
-          var latlong = new google.maps.LatLng(vehicle.latitude, vehicle.longitude);
-
-          var trip_idx = trips.indexOf(vehicle.trip_headsign);
-          if (trip_idx == -1) {
-            trip_idx = trips.push(vehicle.trip_headsign) - 1;
-            addLegend(direction_data[trip_idx].icon, vehicle.trip_headsign);
-          }
-
-          var marker = vehicle_markers[vehicle.vehicle_id];
-          if (!marker) {
-            var marker = new google.maps.Marker({
-              position: latlong,
-              map: map,
-              icon: direction_data[trip_idx].icon
-            });
-
-            marker.infoContent = '<h3>' + vehicle.trip_headsign + '</h3>';
-
-            google.maps.event.addListener(marker, "click", function() {
-              var info_window = new google.maps.InfoWindow({
-                content: this.infoContent,
-              });
-
-              google.maps.event.addListener(info_window, "closeclick", function() {
-                open_info_window = null;
-              });
-
-              if (open_info_window) {
-                open_info_window.close();
-              }
-              open_info_window = info_window;
-              info_window.open(map, this);
-            });
-          } else {
-            marker.setPosition(latlong);
-            marker.setIcon(direction_data[trip_idx].icon);
-          }
-
-          new_markers[vehicle.vehicle_id] = marker;
-          delete vehicle_markers[vehicle.vehicle_id];
-        }
-
-        // Buses no longer on the map
-        for (var vehicle_id in vehicle_markers) {
-          vehicle_markers[vehicle_id].setMap(null);
-        }
-        vehicle_markers = new_markers;
-      });
-    }
-
-    function addLegend(icon, name) {
-      $("#marker_legend").append('<img src="' + icon + '" style="display: inline">' + name);
-    }
-});
+};
