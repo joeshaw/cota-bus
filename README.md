@@ -14,3 +14,41 @@ updated) GTFS data for COTA and updates it with periodic fetches of
 the GTFS-realtime data.
 
 This module is pulled into my blog via git submodules.
+
+## Running the server
+
+To build:
+
+```bash
+go build .
+```
+
+To run:
+```bash
+./cota-bus`
+```
+
+### Configuration Options
+
+The server supports the following command-line flags:
+
+- `-listen`: HTTP listen address (default: `:18080`)
+- `-gtfs-url`: URL to GTFS static feed (default: `https://www.cota.com/data/cota.gtfs.zip`)
+- `-trip-updates-url`: URL to GTFS-realtime trip updates feed (default: `https://gtfs-rt.cota.vontascloud.com/TMGTFSRealTimeWebService/TripUpdate/TripUpdates.pb`)
+- `-vehicles-url`: URL to GTFS-realtime vehicle positions feed (default: `https://gtfs-rt.cota.vontascloud.com/TMGTFSRealTimeWebService/Vehicle/VehiclePositions.pb`)
+
+### Development
+
+If you need to regenerate code for an updated GTFS-realtime protobuf file, you can do so with:
+
+```bash
+go generate ./internal/realtime
+```
+
+This requires the `protoc` compiler and `proto-gen-go` plugin to be installed.
+
+Run the tests with:
+
+```bash
+go test ./...
+```

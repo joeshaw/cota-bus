@@ -125,8 +125,12 @@ function drawStops() {
 }
 
 function getDirectionDisplayName(directionId) {
-    const directionDestinations = currentRoute.attributes.direction_destinations || [];
-    return directionDestinations[directionId] || `Direction ${directionId}`;
+    return currentRoute.attributes.direction_names[directionId];
+}
+
+async function fetchPredictions(stopId, routeId) {
+    const data = await fetchJSON(buildApiUrl(`/predictions?filter[stop]=${stopId}&filter[route]=${routeId}`));
+    return data.data;
 }
 
 function getVehicleIcon(vehicle) {
@@ -152,8 +156,8 @@ function fitMapToBounds() {
 function updateDirections() {
     directions = [];
     markerIcons = [];
-
-    if (!currentRoute || !currentRoute.attributes.direction_destinations) {
+    
+    if (!currentRoute || !currentRoute.attributes.direction_names) {
         // Fallback to vehicle destinations if route data is unavailable
         const seen = new Set();
         vehicles.forEach(vehicle => {
@@ -166,14 +170,16 @@ function updateDirections() {
             }
         });
     } else {
-        const directionDestinations = currentRoute.attributes.direction_destinations || [];
-        directionDestinations.forEach((dest, index) => {
+        // Use route direction names with destinations
+        const directionNames = currentRoute.attributes.direction_names || [];
+        
+        directionNames.forEach((directionName, index) => {
             const displayName = getDirectionDisplayName(index);
             directions.push(displayName);
             markerIcons.push(vehicleIconUrls[index % vehicleIconUrls.length]);
         });
     }
-
+    
     // Render legend
     const container = document.getElementById('directions-container');
     container.innerHTML = '';
@@ -226,6 +232,76 @@ async function openStopInfo(stop) {
         });
     }
     let content = `<strong>${stop.attributes.name}</strong>`;
+    // Show predictions
+    const select = document.getElementById('route-select');
+    const routeId = select.value;
+    try {
+        const predictions = await fetchPredictions(stop.id, routeId);
+        if (predictions.length > 0) {
+            // Filter predictions with arrival times
+            const validPredictions = predictions
+                .filter(pred => pred.attributes.arrival_time || pred.attributes.departure_time);
+            
+            if (validPredictions.length > 0) {
+                // Group predictions by direction
+                const predictionsByDirection = {};
+                validPredictions.forEach(pred => {
+                    const direction = pred.attributes.direction_id;
+                    if (!predictionsByDirection[direction]) {
+                        predictionsByDirection[direction] = [];
+                    }
+                    predictionsByDirection[direction].push(pred);
+                });
+                
+                // Sort and limit each direction to 3 arrivals
+                Object.keys(predictionsByDirection).forEach(direction => {
+                    predictionsByDirection[direction] = predictionsByDirection[direction]
+                        .sort((a, b) => {
+                            const timeA = new Date(a.attributes.arrival_time || a.attributes.departure_time);
+                            const timeB = new Date(b.attributes.arrival_time || b.attributes.departure_time);
+                            return timeA - timeB;
+                        })
+                        .slice(0, 3); // Limit to next 3 per direction
+                });
+                
+                // Get direction names and destinations for display
+                const directionNames = currentRoute?.attributes?.direction_names || ['Outbound', 'Inbound'];
+                const directionDestinations = currentRoute?.attributes?.direction_destinations || [];
+                
+                // Display predictions by direction
+                Object.keys(predictionsByDirection).sort().forEach(direction => {
+                    const directionPreds = predictionsByDirection[direction];
+                    if (directionPreds.length > 0) {
+                        const displayName = getDirectionDisplayName(parseInt(direction));
+                        
+                        content += `<br><em>${displayName}:</em><ul style="margin:0;padding-left:18px;">`;
+                        
+                        directionPreds.forEach(pred => {
+                            const arrival = pred.attributes.arrival_time || pred.attributes.departure_time;
+                            const t = new Date(arrival);
+                            const now = new Date();
+                            const minutesUntil = Math.round((t - now) / 60000);
+                            
+                            if (minutesUntil <= 0) {
+                                content += `<li>Now</li>`;
+                            } else if (minutesUntil === 1) {
+                                content += `<li>1 minute</li>`;
+                            } else {
+                                content += `<li>${minutesUntil} minutes</li>`;
+                            }
+                        });
+                        content += '</ul>';
+                    }
+                });
+            } else {
+                content += '<br><em>No predictions available.</em>';
+            }
+        } else {
+            content += '<br><em>No predictions available.</em>';
+        }
+    } catch (e) {
+        content += '<br><em>Could not load predictions.</em>';
+    }
     infoWindow.setContent(content);
     infoWindow.setPosition({ lat: parseFloat(stop.attributes.latitude), lng: parseFloat(stop.attributes.longitude) });
     infoWindow.open(map);
@@ -248,7 +324,7 @@ async function openVehicleInfo(vehicle) {
     const tripId = vehicle.relationships?.trip?.data?.id;
     if (tripId) {
         try {
-            const tripPredictions = await fetchJSON(buildApiUrl(`/predictions?filter[trip]=${tripId}&include=stop`));
+            const tripPredictions = await fetchJSON(buildApiUrl(`/predictions?filter[trip]=${tripId}&include=stop&sort=departure_time`));
             const predictions = tripPredictions.data;
             const stops = tripPredictions.included || [];
             
@@ -271,6 +347,8 @@ async function openVehicleInfo(vehicle) {
                     content += '<br><br><em>Next stops:</em><ul style="margin:0;padding-left:18px;">';
                     
                     futurePredictions.forEach(pred => {
+                        const stop = stops.find(s => s.id === pred.relationships?.stop?.data?.id);
+                        const stopName = stop ? stop.attributes.name : 'Unknown Stop';
                         const departureTime = pred.attributes.departure_time || pred.attributes.arrival_time;
                         const t = new Date(departureTime);
                         const minutesUntil = Math.round((t - now) / 60000);
@@ -284,7 +362,7 @@ async function openVehicleInfo(vehicle) {
                             timeText = `${minutesUntil} minutes`;
                         }
                         
-                        content += `<li>${timeText}</li>`;
+                        content += `<li>${stopName} - ${timeText}</li>`;
                     });
                     content += '</ul>';
                 }
